@@ -256,13 +256,15 @@ onUnmounted(async () => {
 				.column
 					h2.title Seu número está no cartão
 					.divider
-					p.description Esse é o seu bip temporário. Enquanto essa aba estiver aberta, ele continua válido.
+					p.description Este é o seu bip. Ele dura 24 horas ou enquanto esta aba estiver aberta.
 				.column
 					h2.title Comunicação P2P de verdade
 					.divider
 					p.description Não existe servidor intermediando a conversa. Quando alguém te chama, a comunicação acontece direto de um computador para o outro.
 			section.terms
 				p.text Ao ficar online, você aceita os termos do chatbip.
+				p.text.text-mobile Esse é o seu bip temporário. Ele fica ativo por até 24 horas ou enquanto esta aba estiver aberta.
+				p.text.text-mobile A conversa acontece direto entre dois dispositivos. Não existe servidor intermediando a chamada.
 	
 	#dial(v-if="isDial && !isCall && callState != 'connected'")
 		dial(@number-dialed="handleNumber")
@@ -596,6 +598,19 @@ onUnmounted(async () => {
 				font-size: 1rem;
 				color: var(--color-cream-light);
 			}
+
+			.text-mobile{
+				display: none;
+			}
+
+			@media (min-width: 375px) and (max-width: 639px) {
+				.text{
+					display: none;
+				}
+				.text-mobile{
+					display: block;
+				}
+			}
 		}
 
 		.intro{
@@ -646,6 +661,8 @@ onUnmounted(async () => {
 		display: flex;
 		align-items: center;
 		justify-content: center;
+		flex-direction: column;
+		gap: 2.5rem;
 
 		.list-live{
 			position: absolute;
@@ -698,6 +715,30 @@ onUnmounted(async () => {
 					width: 100%;
 					height: 25%;
 					background: linear-gradient(180deg, rgba(195, 70, 43, 0.00) 0%, #C3462B 100%);
+				}
+			}
+
+			@media (min-width: 375px) and (max-width: 639px) {
+				position: relative;
+				width: 100%;
+				padding: 1rem;
+
+				.bips{
+					width: 100%;
+					flex: none;
+					flex-direction: row;
+
+					.bip{
+						&::after{
+							content: ","
+						}
+
+						&:last-child{
+							&::after{
+								display: none;
+							}
+						}
+					}
 				}
 			}
 		}
