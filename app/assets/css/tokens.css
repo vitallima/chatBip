@@ -1,0 +1,12 @@
+:root {
+	/* Primary Colors */
+	--color-red: #C3462B;
+	--color-blue: #2B42C3;
+	
+	/* Neutral Colors */
+	--color-black: #000000;
+	--color-white: #FBF6EE;
+	--color-cream-light: #F6E4D4;
+	--color-cream-medium: #EEC9AA;
+	--color-brown: #8F6241;
+}

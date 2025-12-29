@@ -1,0 +1,33 @@
+@import url(./reset.css);
+@import url(./fonts.css);
+@import url(./tokens.css);
+
+:root{
+	font-size: 16px;
+}
+
+html,
+body{
+	display: flex;
+	flex-direction: column;
+	font-family: 'SofiaProLight';
+	background-color: var(--color-red);
+
+	&.unavailable{
+		background-color: var(--color-brown);
+	}
+
+	&.connect{
+		background-color: var(--color-blue);
+	}
+}
+
+#__nuxt{
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+}
+
+/* body{
+	background-color: #C3462B;
+} */

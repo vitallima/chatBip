@@ -1,0 +1,209 @@
+/* Modern CSS Reset */
+
+/* Box sizing rules */
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+/* Remove default margin and padding */
+* {
+	margin: 0;
+	padding: 0;
+}
+
+/* Prevent font size inflation */
+html {
+	-moz-text-size-adjust: none;
+	-webkit-text-size-adjust: none;
+	text-size-adjust: none;
+}
+
+/* Remove default styling on common elements */
+body,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+figure,
+blockquote,
+dl,
+dd {
+	margin: 0;
+}
+
+/* Remove list styles on ul, ol elements with a list role */
+ul[role='list'],
+ol[role='list'] {
+	list-style: none;
+}
+
+/* Set core body defaults */
+body {
+	min-height: 100vh;
+	/* line-height: 1.5; */
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+
+/* Set shorter line heights on headings */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	/* line-height: 1.2; */
+	font-weight: inherit;
+}
+
+/* Balance text wrapping on headings */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	text-wrap: balance;
+}
+
+/* A elements that don't have a class get default styles */
+a:not([class]) {
+	text-decoration-skip-ink: auto;
+	color: currentColor;
+}
+
+/* Make images easier to work with */
+img,
+picture,
+svg,
+video,
+canvas {
+	max-width: 100%;
+	display: block;
+}
+
+/* Inherit fonts for inputs and buttons */
+input,
+button,
+textarea,
+select {
+	font: inherit;
+}
+
+/* Remove default button styles */
+button {
+	background: none;
+	border: none;
+	cursor: pointer;
+	color: inherit;
+}
+
+/* Remove default textarea resize handle */
+textarea {
+	resize: vertical;
+}
+
+/* Remove default fieldset styles */
+fieldset {
+	border: none;
+}
+
+/* Avoid text overflows */
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	overflow-wrap: break-word;
+}
+
+/* Create a root stacking context */
+#root,
+#__next {
+	isolation: isolate;
+}
+
+/* Remove default table spacing */
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+
+/* Remove default anchor text decoration */
+a {
+	text-decoration: none;
+	color: inherit;
+}
+
+/* Remove default list styles */
+ul,
+ol {
+	list-style: none;
+}
+
+/* Remove default blockquote styles */
+blockquote,
+q {
+	quotes: none;
+}
+
+blockquote::before,
+blockquote::after,
+q::before,
+q::after {
+	content: '';
+}
+
+/* Remove default hr styles */
+hr {
+	border: none;
+	border-top: 1px solid currentColor;
+	margin: 0;
+}
+
+/* Remove default form element outline */
+:focus-visible {
+	outline: 2px solid currentColor;
+	outline-offset: 2px;
+}
+
+/* Remove default summary marker */
+summary {
+	list-style: none;
+	cursor: pointer;
+}
+
+summary::-webkit-details-marker {
+	display: none;
+}
+
+/* Remove default dialog backdrop */
+dialog::backdrop {
+	background: rgba(0, 0, 0, 0.5);
+}
+
+/* Ensure smooth scrolling if preferred */
+@media (prefers-reduced-motion: no-preference) {
+	html {
+		scroll-behavior: smooth;
+	}
+}
+
+/* Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
+	}
+}

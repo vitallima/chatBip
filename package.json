@@ -1,0 +1,24 @@
+{
+	"name": "chatbip",
+	"type": "module",
+	"private": true,
+	"scripts": {
+		"build": "nuxt build",
+		"dev": "nuxt dev",
+		"generate": "nuxt generate",
+		"preview": "nuxt preview",
+		"postinstall": "nuxt prepare"
+	},
+	"dependencies": {
+		"@pinia/nuxt": "^0.11.3",
+		"@supabase/supabase-js": "^2.89.0",
+		"nuxt": "^4.2.2",
+		"peerjs": "^1.5.5",
+		"pinia": "^3.0.4",
+		"vue": "^3.5.26",
+		"vue-router": "^4.6.4"
+	},
+	"devDependencies": {
+		"pug": "^3.0.3"
+	}
+}
