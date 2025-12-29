@@ -161,7 +161,7 @@ export const usePeerConnection = () => {
 						resetCall()
 					}, 1000)
 				}
-			}, 10000) // Voltei para 10s
+			}, 5000) // Voltei para 10s
 
 		} catch (err) {
 			console.error('Erro ao chamar:', err)

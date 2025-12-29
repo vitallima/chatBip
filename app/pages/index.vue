@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 
 const isOnline = ref(false)
 const isCall = ref(false)
@@ -9,13 +9,16 @@ const dialedNumber = ref('') // Número completo sendo discado
 const maxDigits = 5 // Quantidade máxima de dígitos
 const messageText = ref('') // Para input de mensagem
 
+const { numbers: liveBips, subscribe: subscribeLiveBips } = useLiveAvailableNumbers()
+
 // Composable do número temporário
 const { 
 	myNumber, 
 	isLoading, 
 	error, 
 	initializeNumber, 
-	setOnlineStatus, 
+	setOnlineStatus,
+	setBusyStatus,
 	updateHeartbeat 
 } = useTemporaryNumber()
 
@@ -120,6 +123,7 @@ const toggleOnline = async () => {
 			destroyPeer()
 			
 			// Atualiza status no Supabase
+			await setBusyStatus(false)
 			await setOnlineStatus(false)
 			console.log('Status: OFFLINE')
 			
@@ -173,18 +177,53 @@ const sendChatMessage = () => {
 	}
 }
 
-const logout = () => {
-	setOnlineStatus(false)
-	destroyPeer()
-	isOnline.value = false
-	isCall.value = false
-	isDial.value = false
+const filteredLiveBips = computed(() => {
+	if (!myNumber.value) return liveBips.value
+	return liveBips.value.filter(bip => bip !== myNumber.value)
+})
+
+const logout = async () => {
+	try {
+		await setBusyStatus(false)
+		await setOnlineStatus(false)
+	} finally {
+		destroyPeer()
+		isOnline.value = false
+		isCall.value = false
+		isDial.value = false
+	}
+}
+
+watch(callState, async (state) => {
+	// estados que significam "ocupado"
+	const busyStates = new Set(['calling', 'incoming', 'connected'])
+
+	try {
+		if (busyStates.has(state)) {
+		await setBusyStatus(true, connectedPeer.value || dialedNumber.value || null)
+		} else {
+		await setBusyStatus(false)
+		}
+	} catch (e) {
+		console.error('Erro ao atualizar busy:', e)
+	}
+})
+
+const handleUnload = () => {
+	try {
+		// best-effort (pode falhar em alguns browsers)
+		setBusyStatus(false)
+		setOnlineStatus(false)
+	} catch (e) {}
 }
 
 // Inicializa o número ao montar o componente
 onMounted(async () => {
+	window.addEventListener('beforeunload', handleUnload)
+
 	try {
 		await initializeNumber()
+		await subscribeLiveBips()
 		console.log('Meu número:', myNumber.value)
 	} catch (err) {
 		console.error('Erro ao inicializar número:', err)
@@ -193,6 +232,8 @@ onMounted(async () => {
 
 // Limpa o heartbeat e seta offline ao desmontar
 onUnmounted(async () => {
+	window.removeEventListener('beforeunload', handleUnload)
+
 	if (heartbeatInterval) {
 		clearInterval(heartbeatInterval)
 	}
@@ -225,6 +266,13 @@ onUnmounted(async () => {
 	
 	#dial(v-if="isDial && !isCall && callState != 'connected'")
 		dial(@number-dialed="handleNumber")
+
+		.list-live
+			.bips
+				span.bip(v-for="bip in filteredLiveBips" :key="bip") {{ bip }}
+			.footer
+				span.label Online
+				span.text {{ (liveBips.length - 1) <= 0 ? 0 : (liveBips.length - 1) }}
 	
 	//- Chat quando conectado
 	#chat(v-if="callState === 'connected'")
@@ -303,7 +351,7 @@ onUnmounted(async () => {
 			max-width: 500px;
 			margin: 0 auto;
 			display: flex;
-			padding: 2rem;
+			padding: 1rem;
 			gap: 1rem;
 			flex-direction: column;
 			justify-content: flex-end;
@@ -380,7 +428,8 @@ onUnmounted(async () => {
 		}
 		
 		.send-btn:hover {
-			opacity: 0.8;
+			background-color: var(--color-white);
+			color: var(--color-black);
 		}
 		
 		.hangup-btn {
@@ -500,6 +549,10 @@ onUnmounted(async () => {
 		justify-content: center;
 		background-color: var(--color-black);
 
+		@media (min-width: 375px) and (max-width: 639px) {
+			background-color: var(--color-red);
+		}
+
 		&.motion-start-leave-active {
 			transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
@@ -553,6 +606,10 @@ onUnmounted(async () => {
 			height: 45vh;
 			padding: 2.5rem 6rem;
 			background-color: var(--color-red);
+
+			@media (min-width: 375px) and (max-width: 639px) {
+				display: none;
+			}
 			
 			.column{
 				display: flex;
@@ -589,5 +646,60 @@ onUnmounted(async () => {
 		display: flex;
 		align-items: center;
 		justify-content: center;
+
+		.list-live{
+			position: absolute;
+			height: 100%;
+			width: 13rem;
+			display: flex;
+			flex-direction: column;
+			right: 0;
+			padding: 1rem 2rem;
+
+			.footer{
+				width: 100%;
+				display: flex;
+				justify-content: space-between;
+				border-top: 1px solid rgba(255, 255, 255, .10);
+				padding-top: 1rem;
+				color: var(--color-cream-light);
+			}
+
+			.bips{
+				position: relative;
+				display: flex;
+				flex-direction: column;
+				justify-content: center;
+				align-items: flex-end;
+				flex: 1;
+				overflow: auto;
+
+				.bip{
+					font-size: 2rem;
+					font-family: 'ocr';
+					color: var(--color-cream-light);
+				}
+
+				&::before{
+					content: "";
+					position: absolute;
+					top: 0;
+					left: 0;
+					width: 100%;
+					height: 25%;
+					background: linear-gradient(180deg, #C3462B 0%, rgba(195, 70, 43, 0.00) 100%);
+				}
+
+				&::after{
+					content: "";
+					position: absolute;
+					bottom: 0;
+					left: 0;
+					width: 100%;
+					height: 25%;
+					background: linear-gradient(180deg, rgba(195, 70, 43, 0.00) 0%, #C3462B 100%);
+				}
+			}
+		}
 	}
 </style>

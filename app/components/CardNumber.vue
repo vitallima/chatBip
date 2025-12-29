@@ -145,6 +145,7 @@
 				border: 2px solid var(--color-black);
 				border-radius: 10px;
 				color: var(--color-white);
+				transition: all .2s;
 
 				&.icon-logout{
 					&:before{
@@ -167,6 +168,14 @@
 						mask-image: url('./images/call-end.svg');
 						mask-size: contain;
 						mask-repeat: no-repeat;
+					}
+				}
+
+				&:hover{
+					background-color: var(--color-black);
+
+					&:before{
+						background-color: var(--color-white);
 					}
 				}
 			}

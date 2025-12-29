@@ -223,11 +223,29 @@ export const useTemporaryNumber = () => {
 		}
 	}
 
+	const setBusyStatus = async (isBusy, busyWith = null) => {
+		if (!myNumber.value) throw new Error('Número não inicializado')
+
+		const updateData = {
+			is_busy: isBusy,
+			busy_with: isBusy ? busyWith : null,
+			last_seen: new Date().toISOString(),
+		}
+
+		const { error: updateError } = await $supabase
+			.from('temporary_numbers')
+			.update(updateData)
+			.eq('number', myNumber.value)
+
+		if (updateError) throw updateError
+	}
+
 	return {
 		myNumber,
 		isLoading,
 		error,
 		initializeNumber,
+		setBusyStatus,
 		setOnlineStatus,
 		updateHeartbeat,
 		clearLocalStorage
