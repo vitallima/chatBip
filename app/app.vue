@@ -1,4 +1,6 @@
 <script setup>
+	import { Analytics } from '@vercel/analytics/nuxt'
+
 	useHead({
 		title: 'chatBip — Conversas anônimas e temporárias',
 		meta: [
@@ -36,4 +38,5 @@
 
 <template lang="pug">
 	nuxt-page
+	analytics
 </template>
