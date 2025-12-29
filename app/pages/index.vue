@@ -22,6 +22,18 @@ const {
 	updateHeartbeat 
 } = useTemporaryNumber()
 
+const {
+	playClickSound,
+	playPulseSound,
+	playRingSound,
+	playBusySound,
+	playConnectSound,
+	playHangupSound,
+	playMessageSound,
+	toggleMute,
+	isMuted
+} = useSounds()
+
 // Composable do Peer (WebRTC)
 const {
 	peer,
@@ -146,6 +158,8 @@ const toggleOnline = async () => {
 const handleNumber = (number) => {
 	currentDial.value = number
 	
+	playClickSound()
+
 	// Adiciona o número discado à string
 	if (dialedNumber.value.length < maxDigits) {
 		dialedNumber.value += number
@@ -155,6 +169,8 @@ const handleNumber = (number) => {
 		if (dialedNumber.value.length === maxDigits) {
 			isCall.value = true
 			console.log('Número completo:', dialedNumber.value)
+
+			playRingSound()
 			
 			// Inicia a chamada P2P
 			makeCall(dialedNumber.value)
@@ -168,6 +184,8 @@ const resetNumber = () => {
 	currentDial.value = null
 	isCall.value = false
 	hangUp()
+
+	playHangupSound()
 }
 
 const sendChatMessage = () => {
@@ -200,12 +218,39 @@ watch(callState, async (state) => {
 
 	try {
 		if (busyStates.has(state)) {
-		await setBusyStatus(true, connectedPeer.value || dialedNumber.value || null)
+			await setBusyStatus(true, connectedPeer.value || dialedNumber.value || null)
 		} else {
-		await setBusyStatus(false)
+			await setBusyStatus(false)
 		}
 	} catch (e) {
 		console.error('Erro ao atualizar busy:', e)
+	}
+})
+
+watch(() => messages.value.length, (newLength, oldLength) => {
+	if (newLength > oldLength) {
+		const lastMessage = messages.value[newLength - 1]
+		if (lastMessage.type === 'received') {
+			playMessageSound()
+		}
+	}
+})
+
+// ✨ Watch para tocar sons baseado no estado da chamada
+watch(callState, (newState, oldState) => {
+	switch (newState) {
+		case 'connected':
+			playConnectSound()
+			break
+		case 'unavailable':
+			playBusySound()
+			break
+		case 'connect-close':
+			playHangupSound()
+			break
+		case 'incoming':
+			playRingSound()
+			break
 	}
 })
 
