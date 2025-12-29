@@ -1,17 +1,17 @@
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 
 const isOnline = ref(false)
 const isCall = ref(false)
 const currentDial = ref(null)
 const isDial = ref(false)
-const dialedNumber = ref('') // Número completo sendo discado
-const maxDigits = 5 // Quantidade máxima de dígitos
-const messageText = ref('') // Para input de mensagem
+const dialedNumber = ref('')
+const maxDigits = 5
+const messageText = ref('')
+const messagesContainer = ref(null) // 📜 Ref para o container de mensagens
 
 const { numbers: liveBips, subscribe: subscribeLiveBips } = useLiveAvailableNumbers()
 
-// Composable do número temporário
 const { 
 	myNumber, 
 	isLoading, 
@@ -34,7 +34,6 @@ const {
 	isMuted
 } = useSounds()
 
-// Composable do Peer (WebRTC)
 const {
 	peer,
 	callState,
@@ -47,10 +46,17 @@ const {
 	destroyPeer
 } = usePeerConnection()
 
-// Interval para heartbeat
 let heartbeatInterval = null
 
-// Computed para variant do caller (card de cima)
+// 📜 Função para scroll automático
+const scrollToBottom = () => {
+	nextTick(() => {
+		if (messagesContainer.value) {
+			messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
+		}
+	})
+}
+
 const variantCaller = computed(() => {
 	if (!isOnline.value) return 'default'
 	if (callState.value === 'connected') return 'minimal'
@@ -58,20 +64,17 @@ const variantCaller = computed(() => {
 	return 'minimal'
 })
 
-// Computed para variant do callee (card de baixo)
 const variantCallee = computed(() => {
 	if (callState.value === 'connected') return 'minimal'
 	if (isCall.value) return 'compact'
 	return 'minimal'
 })
 
-// Computed para formatar o número no display
 const displayNumber = computed(() => {
 	if (!dialedNumber.value) return '-----'
 	return dialedNumber.value.padEnd(maxDigits, '-')
 })
 
-// Computed para texto do status
 const statusText = computed(() => {
 	switch (callState.value) {
 		case 'calling':
@@ -82,24 +85,22 @@ const statusText = computed(() => {
 			return 'Chamada recebida...'
 		case 'unavailable':
 			document.querySelector('body').classList.add('unavailable')
-
 			setTimeout(() => {
 				isCall.value = false
 				dialedNumber.value = ''
 				currentDial.value = null
 				document.querySelector('body').classList.remove('unavailable')
-			}, 500);
+			}, 500)
 			return 'Número indisponível'
 		case 'connect-close':
 			document.querySelector('body').classList.add('unavailable')
 			document.querySelector('body').classList.remove('connect')
-
 			setTimeout(() => {
 				isCall.value = false
 				dialedNumber.value = ''
 				currentDial.value = null
 				document.querySelector('body').classList.remove('unavailable')
-			}, 500);
+			}, 500)
 			return 'Chamada encerrada'
 		default:
 			return 'Conectando...'
@@ -111,15 +112,12 @@ const toggleOnline = async () => {
 
 	if (isOnline.value) {
 		try {
-			// Inicializa o Peer com o número do usuário
 			await initializePeer(myNumber.value)
 			console.log('Peer inicializado:', myNumber.value)
 			
-			// Atualiza status no Supabase com peer_id
 			await setOnlineStatus(true, myNumber.value)
 			console.log('Status: ONLINE')
 			
-			// Inicia heartbeat (atualiza a cada 30 segundos)
 			heartbeatInterval = setInterval(() => {
 				updateHeartbeat()
 			}, 30000)
@@ -131,15 +129,11 @@ const toggleOnline = async () => {
 		}
 	} else {
 		try {
-			// Destroi peer
 			destroyPeer()
-			
-			// Atualiza status no Supabase
 			await setBusyStatus(false)
 			await setOnlineStatus(false)
 			console.log('Status: OFFLINE')
 			
-			// Para o heartbeat
 			if (heartbeatInterval) {
 				clearInterval(heartbeatInterval)
 				heartbeatInterval = null
@@ -157,34 +151,26 @@ const toggleOnline = async () => {
 
 const handleNumber = (number) => {
 	currentDial.value = number
-	
 	playClickSound()
 
-	// Adiciona o número discado à string
 	if (dialedNumber.value.length < maxDigits) {
 		dialedNumber.value += number
 		console.log('Número atual:', dialedNumber.value)
 		
-		// Quando completar 5 dígitos
 		if (dialedNumber.value.length === maxDigits) {
 			isCall.value = true
 			console.log('Número completo:', dialedNumber.value)
-
 			playRingSound()
-			
-			// Inicia a chamada P2P
 			makeCall(dialedNumber.value)
 		}
 	}
 }
 
-// Função para resetar o número (útil para cancelar)
 const resetNumber = () => {
 	dialedNumber.value = ''
 	currentDial.value = null
 	isCall.value = false
 	hangUp()
-
 	playHangupSound()
 }
 
@@ -192,6 +178,7 @@ const sendChatMessage = () => {
 	if (messageText.value.trim()) {
 		sendMessage(messageText.value.trim())
 		messageText.value = ''
+		scrollToBottom() // 📜 Scroll após enviar
 	}
 }
 
@@ -213,7 +200,6 @@ const logout = async () => {
 }
 
 watch(callState, async (state) => {
-	// estados que significam "ocupado"
 	const busyStates = new Set(['calling', 'incoming', 'connected'])
 
 	try {
@@ -225,19 +211,25 @@ watch(callState, async (state) => {
 	} catch (e) {
 		console.error('Erro ao atualizar busy:', e)
 	}
+
+	// 📜 Scroll ao conectar
+	if (state === 'connected') {
+		scrollToBottom()
+	}
 })
 
+// 📜 Watch para mensagens - scroll automático
 watch(() => messages.value.length, (newLength, oldLength) => {
 	if (newLength > oldLength) {
 		const lastMessage = messages.value[newLength - 1]
 		if (lastMessage.type === 'received') {
 			playMessageSound()
 		}
+		scrollToBottom() // 📜 Scroll para cada nova mensagem
 	}
 })
 
-// ✨ Watch para tocar sons baseado no estado da chamada
-watch(callState, (newState, oldState) => {
+watch(callState, (newState) => {
 	switch (newState) {
 		case 'connected':
 			playConnectSound()
@@ -256,13 +248,11 @@ watch(callState, (newState, oldState) => {
 
 const handleUnload = () => {
 	try {
-		// best-effort (pode falhar em alguns browsers)
 		setBusyStatus(false)
 		setOnlineStatus(false)
 	} catch (e) {}
 }
 
-// Inicializa o número ao montar o componente
 onMounted(async () => {
 	window.addEventListener('beforeunload', handleUnload)
 
@@ -275,7 +265,6 @@ onMounted(async () => {
 	}
 })
 
-// Limpa o heartbeat e seta offline ao desmontar
 onUnmounted(async () => {
 	window.removeEventListener('beforeunload', handleUnload)
 
@@ -324,7 +313,7 @@ onUnmounted(async () => {
 	//- Chat quando conectado
 	#chat(v-if="callState === 'connected'")
 		.container-chat
-			.messages
+			.messages(ref="messagesContainer")
 				.message(
 					v-for="(msg, index) in messages",
 					:key="index",
@@ -355,8 +344,6 @@ onUnmounted(async () => {
 	
 	span.text-loading(v-if="isCall && callState != 'connected'") {{ statusText }}
 	
-	//- Botão desligar quando conectado
-	//- button.hangup-btn(v-if="callState === 'connected'", @click="resetNumber") DESLIGAR
 	transition(name="slide-up")
 		card-number(
 			v-if="isOnline",
@@ -391,6 +378,7 @@ onUnmounted(async () => {
 		flex-direction: column;
 		justify-content: flex-end;
 		background-color: var(--color-blue);
+		overflow: hidden; /* 📜 Previne scroll da página */
 		
 		.container-chat{
 			width: 100%;
@@ -402,20 +390,41 @@ onUnmounted(async () => {
 			gap: 1rem;
 			flex-direction: column;
 			justify-content: flex-end;
+			overflow: hidden; /* 📜 Previne scroll no container */
 		}
 
 		.messages {
-			overflow-y: auto;
+			overflow-y: auto; /* 📜 Scroll apenas aqui */
+			overflow-x: hidden;
 			display: flex;
 			flex-direction: column;
 			gap: 0.5rem;
+			padding-right: 0.25rem; /* 📜 Espaço para scrollbar */
+
+			/* 📜 Scrollbar customizada */
+			&::-webkit-scrollbar {
+				width: 6px;
+			}
+			
+			&::-webkit-scrollbar-track {
+				background: rgba(255, 255, 255, 0.1);
+			}
+			
+			&::-webkit-scrollbar-thumb {
+				background: var(--color-cream-medium);
+				border-radius: 3px;
+				
+				&:hover {
+					background: var(--color-cream-light);
+				}
+			}
 		}
 		
 		.message {
 			padding: 0.75rem;
 			max-width: 70%;
 			word-break: break-word;
-
+			flex-shrink: 0; /* 📜 Previne compressão */
 		}
 		
 		.time{
@@ -448,6 +457,7 @@ onUnmounted(async () => {
 		.input-row {
 			display: flex;
 			gap: 0.5rem;
+			flex-shrink: 0; /* 📜 Mantém input sempre visível */
 		}
 		
 		.message-input {
@@ -477,28 +487,6 @@ onUnmounted(async () => {
 		.send-btn:hover {
 			background-color: var(--color-white);
 			color: var(--color-black);
-		}
-		
-		.hangup-btn {
-			position: fixed;
-			bottom: 2rem;
-			left: 50%;
-			transform: translateX(-50%);
-			background: var(--color-red);
-			color: var(--color-cream-light);
-			border: none;
-			border-radius: 8px;
-			padding: 1rem 2rem;
-			font-size: 1rem;
-			font-weight: bold;
-			letter-spacing: 2px;
-			cursor: pointer;
-			transition: opacity 0.2s;
-			z-index: 1000;
-		}
-		
-		.hangup-btn:hover {
-			opacity: 0.8;
 		}
 	}
 	
