@@ -153,7 +153,7 @@
 						width: 1.5rem;
 						height: 1.5rem;
 						background-color: var(--color-black);
-						mask-image: url('./images/logout.svg');
+						mask-image: url('/images/logout.svg');
 						mask-size: contain;
 						mask-repeat: no-repeat;
 					}
@@ -165,7 +165,7 @@
 						width: 1.5rem;
 						height: 1.5rem;
 						background-color: var(--color-black);
-						mask-image: url('./images/call-end.svg');
+						mask-image: url('/images/call-end.svg');
 						mask-size: contain;
 						mask-repeat: no-repeat;
 					}
@@ -243,7 +243,7 @@
 				mask-size: contain;
 				mask-position: center;
 				mask-repeat: no-repeat;
-				mask-image: url('./images/ring-text.svg');
+				mask-image: url('/images/ring-text.svg');
 			}
 
 			.ring{
@@ -261,25 +261,25 @@
 				&.ring-0{
 					width: 80%;
 					height: 80%;
-					mask-image: url('./images/ring-0.svg');
+					mask-image: url('/images/ring-0.svg');
 				}
 
 				&.ring-1{
 					width: 70%;
 					height: 70%;
-					mask-image: url('./images/ring-1.svg');
+					mask-image: url('/images/ring-1.svg');
 				}
 
 				&.ring-2{
 					width: 60%;
 					height: 60%;
-					mask-image: url('./images/ring-2.svg');
+					mask-image: url('/images/ring-2.svg');
 				}
 
 				&.ring-3{
 					width: 50%;
 					height: 50%;
-					mask-image: url('./images/ring-3.svg');
+					mask-image: url('/images/ring-3.svg');
 				}
 			}
 		}

@@ -406,7 +406,7 @@
 		margin: auto;
 		width: 2rem;
 		height: 2rem;
-		mask-image: url('./images/stop-finger.svg');
+		mask-image: url('/images/stop-finger.svg');
 		mask-size: contain;
 		mask-repeat: no-repeat;
 		background-color: var(--color-white);
