@@ -2,7 +2,7 @@
 	import { Analytics } from '@vercel/analytics/nuxt'
 
 	useHead({
-		title: 'chatBip — Conversas anônimas e temporárias',
+		title: 'chatBip — Conversas anônimas',
 		meta: [
 			{
 			name: 'description',
@@ -12,7 +12,7 @@
 
 			// Open Graph
 			{ property: 'og:type', content: 'website' },
-			{ property: 'og:title', content: 'chatBip — Conversas anônimas, diretas e temporárias' },
+			{ property: 'og:title', content: 'chatBip — Conversas anônimas e diretas' },
 			{
 			property: 'og:description',
 			content:
@@ -25,7 +25,7 @@
 
 			// Twitter
 			{ name: 'twitter:card', content: 'summary_large_image' },
-			{ name: 'twitter:title', content: 'chatBip — Conversas anônimas e temporárias' },
+			{ name: 'twitter:title', content: 'chatBip — Conversas anônimas' },
 			{
 			name: 'twitter:description',
 			content:
